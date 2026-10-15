@@ -1,0 +1,115 @@
+@page
+@model GestionProduits.Pages.Produits.IndexModel
+@{
+    ViewData["Title"] = "Produits";
+    var total = Model.Produits.Count;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-0">Produits</h1>
+        <span class="text-muted">Gérez votre catalogue simplement.</span>
+    </div>
+    <a asp-page="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Nouveau produit
+    </a>
+</div>
+
+@if (total > 0)
+{
+    <div class="card">
+        <div class="card-body border-bottom">
+            <div class="input-group search-box" style="max-width: 360px;">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" id="recherche" class="form-control" placeholder="Rechercher un produit ou une catégorie..." />
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="tableProduits">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Catégorie</th>
+                        <th>Prix</th>
+                        <th>Stock</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Produits)
+                    {
+                        <tr>
+                            <td>
+                                <span class="avatar">@(string.IsNullOrEmpty(p.Nom) ? "?" : p.Nom.Substring(0, 1).ToUpper())</span>
+                                <span class="fw-semibold">@p.Nom</span>
+                            </td>
+                            <td><span class="badge badge-cat rounded-pill px-3 py-2">@p.Categorie?.Nom</span></td>
+                            <td class="fw-semibold">@p.Prix.ToString("N3") DT</td>
+                            <td>
+                                @if (p.Stock == 0)
+                                {
+                                    <span class="badge badge-soft-red rounded-pill px-3 py-2">
+                                        <i class="bi bi-x-circle me-1"></i>Rupture
+                                    </span>
+                                }
+                                else if (p.Stock <= 5)
+                                {
+                                    <span class="badge badge-soft-red rounded-pill px-3 py-2">
+                                        <i class="bi bi-exclamation-circle me-1"></i>Stock faible (@p.Stock)
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-soft-blue rounded-pill px-3 py-2">
+                                        <i class="bi bi-check-circle me-1"></i>@p.Stock disponibles
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a asp-page="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil-square me-1"></i>Modifier
+                                </a>
+                                <a asp-page="Delete" asp-route-id="@p.Id" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash me-1"></i>Supprimer
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    <tr id="aucunResultat" style="display:none;">
+                        <td colspan="5" class="text-center text-muted py-4">Aucun résultat.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h2 class="h5 mt-3">Aucun produit</h2>
+            <p class="text-muted">Commencez par ajouter votre premier produit.</p>
+            <a asp-page="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Ajouter un produit</a>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        const champ = document.getElementById('recherche');
+        if (champ) {
+            champ.addEventListener('input', function () {
+                const terme = this.value.toLowerCase().trim();
+                let visibles = 0;
+                document.querySelectorAll('#tableProduits tbody tr').forEach(function (tr) {
+                    if (tr.id === 'aucunResultat') return;
+                    const ok = tr.innerText.toLowerCase().includes(terme);
+                    tr.style.display = ok ? '' : 'none';
+                    if (ok) visibles++;
+                });
+                document.getElementById('aucunResultat').style.display = visibles === 0 ? '' : 'none';
+            });
+        }
+    </script>
+}
